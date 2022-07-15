@@ -32,7 +32,7 @@ func (d DnsTestPlugin) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dn
 
 	m := new(dns.Msg)
 	m.SetReply(r)
-	hdr := dns.RR_Header{Name: state.QName(), Rrtype: dns.TypeTXT, Class: dns.ClassCHAOS, Ttl: 0}
+	hdr := dns.RR_Header{Name: state.QName(), Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 60}
 
 	m.Answer = []dns.RR{&dns.A{Hdr: hdr, A: net.ParseIP(reply)}}
 

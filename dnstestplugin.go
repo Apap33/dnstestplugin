@@ -2,10 +2,11 @@ package dnstestplugin
 
 import (
 	"context"
-	"coredns/request"
 	"fmt"
 	"net"
 	"strings"
+
+	"github.com/coredns/coredns/request"
 
 	"github.com/coredns/coredns/plugin"
 	clog "github.com/coredns/coredns/plugin/pkg/log"

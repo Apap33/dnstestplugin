@@ -27,7 +27,7 @@ func (d DnsTestPlugin) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dn
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})
-	redisctx := context.Background()
+	// redisctx := context.Background()
 
 	state := request.Request{W: w, Req: r}
 	qname := state.Name()
@@ -36,7 +36,7 @@ func (d DnsTestPlugin) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dn
 	fmt.Println("Query name: ", qname)
 	hdr := dns.RR_Header{Name: state.QName(), Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 60}
 
-	val, err := rdb.Get(redisctx, "testavi").Result()
+	val, err := rdb.Get("testavi").Result()
 	if err != nil {
 		fmt.Errorf("Redis error %s", err)
 		m.SetRcode(state.Req, dns.RcodeNameError)

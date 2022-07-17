@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"strings"
 
 	"github.com/coredns/coredns/request"
 
 	"github.com/coredns/coredns/plugin"
 	clog "github.com/coredns/coredns/plugin/pkg/log"
 
+	"github.com/go-redis/redis"
 	"github.com/miekg/dns"
 )
 
@@ -21,21 +21,30 @@ type DnsTestPlugin struct {
 }
 
 func (d DnsTestPlugin) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+	redisctx := context.Background()
+
 	state := request.Request{W: w, Req: r}
 	qname := state.Name()
-	reply := "8.8.8.8"
-
-	if strings.HasPrefix(state.IP(), "172.") || strings.HasPrefix(state.IP(), "127.") {
-		reply = "1.1.1.1"
-	}
-
-	fmt.Printf("received query %s from %s, expected to reply %s\n", qname, state.IP(), reply)
-
 	m := new(dns.Msg)
 	m.SetReply(r)
+	fmt.Println("Query name: ", qname)
 	hdr := dns.RR_Header{Name: state.QName(), Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 60}
 
-	m.Answer = []dns.RR{&dns.A{Hdr: hdr, A: net.ParseIP(reply)}}
+	val, err := rdb.Get(redisctx, "testavi").Result()
+	if err != nil {
+		fmt.Errorf("Redis error %s", err)
+		m.SetRcode(state.Req, dns.RcodeNameError)
+		state.SizeAndDo(m)
+		_ = state.W.WriteMsg(m)
+		return dns.RcodeSuccess, err
+	}
+	m.Answer = []dns.RR{&dns.A{Hdr: hdr, A: net.ParseIP(val)}}
 
 	w.WriteMsg(m)
 	return 0, nil

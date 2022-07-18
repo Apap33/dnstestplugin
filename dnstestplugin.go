@@ -36,7 +36,7 @@ func (d DnsTestPlugin) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dn
 	fmt.Println("Query name: ", qname)
 	hdr := dns.RR_Header{Name: state.QName(), Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 60}
 
-	val, err := rdb.Get("testavi").Result()
+	val, err := rdb.Get(qname).Result()
 	if err != nil {
 		fmt.Errorf("Redis error %s", err)
 		m.SetRcode(state.Req, dns.RcodeNameError)
